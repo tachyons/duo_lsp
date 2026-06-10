@@ -1,0 +1,124 @@
+version: 2
+
+project_name: duo-lsp
+
+# ── Semantic versioning via conventional commits ──────────────────────────────
+# GoReleaser itself doesn't parse commits; semantic-release or the GitLab
+# release pipeline drives the tag. GoReleaser picks up whatever tag triggered
+# the pipeline and uses it as the version.
+
+before:
+  hooks:
+    - go mod tidy
+    - go mod verify
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+builds:
+  - id: duo-lsp
+    main: ./cmd/duo-lsp
+    binary: duo-lsp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+# ── Archives ──────────────────────────────────────────────────────────────────
+archives:
+  - id: duo-lsp
+    builds:
+      - duo-lsp
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: tar.gz
+    files:
+      - README.md
+      - LICENSE*
+
+# ── Checksums ─────────────────────────────────────────────────────────────────
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+# ── Changelog ─────────────────────────────────────────────────────────────────
+changelog:
+  use: git
+  sort: asc
+  groups:
+    - title: "🚀 Features"
+      regexp: '^feat(\(.+\))?!?:'
+      order: 0
+    - title: "🐛 Bug Fixes"
+      regexp: '^fix(\(.+\))?!?:'
+      order: 1
+    - title: "⚡ Performance"
+      regexp: '^perf(\(.+\))?!?:'
+      order: 2
+    - title: "🔒 Security"
+      regexp: '^(fix|feat)(\(.+\))?!?:.*[Ss]ecurity'
+      order: 3
+    - title: "📦 Dependencies"
+      regexp: '^(build|chore)\(deps\):'
+      order: 4
+    - title: "Other"
+      order: 99
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge (pull|merge) request
+      - Merge branch
+
+# ── GitLab Release ────────────────────────────────────────────────────────────
+gitlab_urls:
+  api: https://gitlab.com/api/v4/
+  download: https://gitlab.com
+
+release:
+  gitlab:
+    owner: tachyons
+    name: duo_mini_lsp
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+
+# ── Homebrew Tap ──────────────────────────────────────────────────────────────
+# GoReleaser pushes a Formula/duo-lsp.rb into the tap repo after each release.
+# The tap repo must exist at gitlab.com/tachyons/homebrew-duo-lsp.
+brews:
+  - name: duo-lsp
+    ids:
+      - duo-lsp
+    repository:
+      # GitLab tap repo — must exist before the first release.
+      # Create it at: https://gitlab.com/new  (name: homebrew-duo-lsp)
+      owner: tachyons
+      name: homebrew-duo-lsp
+      branch: main
+      # GoReleaser commits the formula using a deploy token or project token
+      # stored in the HOMEBREW_TAP_TOKEN CI variable.
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      git:
+        url: "https://oauth2:{{ .Env.HOMEBREW_TAP_TOKEN }}@gitlab.com/tachyons/homebrew-duo-lsp.git"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "chore: update duo-lsp formula to {{ .Tag }}"
+    directory: Formula
+    homepage: "https://gitlab.com/tachyons/duo_mini_lsp"
+    description: "Minimal GitLab Duo LSP server for inline code completions (LSP 3.18)"
+    license: "MIT"
+    skip_upload: false
+    install: |
+      bin.install "duo-lsp"
+    test: |
+      system "#{bin}/duo-lsp", "--help"

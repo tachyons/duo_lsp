@@ -1,0 +1,44 @@
+# ── Build output ──────────────────────────────────────────────────────────────
+/duo-lsp
+/duo-lsp.exe
+/dist/
+
+# ── Go toolchain ──────────────────────────────────────────────────────────────
+# Compiled object files, static and dynamic libs
+*.o
+*.a
+*.so
+
+# Test binary and coverage output
+*.test
+*.out
+coverage.html
+coverage.txt
+
+# Go workspace file (local multi-module development)
+go.work
+go.work.sum
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# ── Editor / IDE ──────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.vim/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+
+# ── Runtime / config ─────────────────────────────────────────────────────────
+# Never commit stored OAuth tokens
+config.json

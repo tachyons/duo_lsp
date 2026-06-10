@@ -10,11 +10,22 @@ required on the machine running the server.
 
 ## Prerequisites
 
-- Go 1.22+
 - A GitLab account with Duo Code Suggestions enabled
-- A registered GitLab OAuth application (see below)
 
-## Build
+## Installation
+
+### Homebrew (macOS and Linux)
+
+```sh
+brew tap tachyons/duo-lsp https://gitlab.com/tachyons/homebrew-duo-lsp
+brew install duo-lsp
+```
+
+The formula is updated automatically on every release.
+
+### Build from source
+
+Requires Go 1.22+.
 
 ```sh
 go mod tidy
@@ -55,7 +66,7 @@ Optional flags:
 
 ### Neovim
 
-Requires Neovim **0.10+**. The built-in `vim.lsp` and `vim.lsp.inline_completion`
+Requires Neovim **0.12+**. The built-in `vim.lsp` and `vim.lsp.inline_completion`
 APIs are used — no plugins required.
 
 #### 1. Register and enable the server
@@ -72,8 +83,8 @@ vim.lsp.config['gitlab_duo_lsp'] = {
 vim.lsp.enable('gitlab_duo_lsp')
 ```
 
-Replace `/path/to/duo-lsp` with the absolute path to the built binary, e.g.
-`/Users/you/code/duo_lsp/duo-lsp`.
+Replace `/path/to/duo-lsp` with the absolute path to the binary. If installed
+via Homebrew, use `vim.fn.exepath('duo-lsp')` instead of a hardcoded path.
 
 #### 2. Enable inline completion
 
@@ -82,7 +93,7 @@ vim.lsp.inline_completion.enable()
 ```
 
 This activates ghost-text suggestions that appear automatically while you type
-(debounced at 200 ms).
+(debounced at 200 ms by Neovim's built-in handler).
 
 #### 3. Accept a suggestion with Tab
 
@@ -97,15 +108,14 @@ end, { expr = true, desc = 'Accept the current inline completion' })
 `<Tab>` accepts the displayed suggestion when one is visible, and falls back to
 a literal tab otherwise.
 
-
 #### Complete minimal config
 
 ```lua
 -- ~/.config/nvim/init.lua  (or any sourced file)
 
 vim.lsp.config['gitlab_duo_lsp'] = {
-  cmd = { "/path/to/duo-lsp", "serve" },
-  filetypes = { "ruby", "go", "lua", "python", "javascript", "typescript" },
+  cmd = { vim.fn.exepath('duo-lsp') ~= '' and vim.fn.exepath('duo-lsp') or '/path/to/duo-lsp', 'serve' },
+  filetypes = { 'ruby', 'go', 'lua', 'python', 'javascript', 'typescript' },
 }
 
 vim.lsp.enable('gitlab_duo_lsp')
@@ -118,7 +128,7 @@ vim.keymap.set('i', '<Tab>', function()
   end
 end, { expr = true, desc = 'Accept the current inline completion' })
 
--- Optional: cycle suggestions
+-- Optional: cycle through multiple suggestions
 vim.keymap.set('i', '<M-]>', function()
   vim.lsp.inline_completion.select({ count = 1 })
 end, { desc = 'Next inline completion' })
@@ -126,6 +136,19 @@ end, { desc = 'Next inline completion' })
 vim.keymap.set('i', '<M-[>', function()
   vim.lsp.inline_completion.select({ count = -1 })
 end, { desc = 'Previous inline completion' })
+```
+
+#### Optional: debug logging
+
+```lua
+vim.lsp.config['gitlab_duo_lsp'] = {
+  cmd = { 'duo-lsp', 'serve', '--log-level', 'debug', '--log-file', '/tmp/duo-lsp.log' },
+  filetypes = { 'ruby', 'go', 'lua' },
+}
+```
+
+```sh
+tail -f /tmp/duo-lsp.log
 ```
 
 ## Architecture
