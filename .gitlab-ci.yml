@@ -124,7 +124,7 @@ auto-tag:
 goreleaser:
   stage: release
   image:
-    name: goreleaser/goreleaser:v2
+    name: goreleaser/goreleaser
     entrypoint: [""]
   variables:
     GITLAB_TOKEN: "$CI_JOB_TOKEN"
