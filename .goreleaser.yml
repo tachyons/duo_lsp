@@ -79,6 +79,9 @@ changelog:
       - Merge branch
 
 # ── GitLab Release ────────────────────────────────────────────────────────────
+# CI_JOB_TOKEN is automatically available in CI and has the api scope needed
+# to create releases. GoReleaser reads GITLAB_TOKEN; we set it from
+# CI_JOB_TOKEN in .gitlab-ci.yml so no stored secrets are required.
 gitlab_urls:
   api: https://gitlab.com/api/v4/
   download: https://gitlab.com
@@ -92,27 +95,28 @@ release:
   name_template: "v{{.Version}}"
 
 # ── Homebrew Tap ──────────────────────────────────────────────────────────────
-# GoReleaser pushes a Formula/duo-lsp.rb into the tap repo after each release.
-# The tap repo must exist at gitlab.com/tachyons/homebrew-duo-lsp.
+# The formula lives in the same repo under Formula/duo-lsp.rb.
+# GoReleaser writes the file via the GitLab Files API using CI_JOB_TOKEN
+# (set as GITLAB_TOKEN in the CI job) — no separate tap repo or stored secrets.
+#
+# Install with:
+#   brew tap tachyons/duo-lsp https://gitlab.com/tachyons/duo_mini_lsp
+#   brew install duo-lsp
 brews:
   - name: duo-lsp
     ids:
       - duo-lsp
     repository:
-      # GitLab tap repo — must exist before the first release.
-      # Create it at: https://gitlab.com/new  (name: homebrew-duo-lsp)
       owner: tachyons
-      name: homebrew-duo-lsp
+      name: duo_mini_lsp
       branch: main
-      # GoReleaser commits the formula using a deploy token or project token
-      # stored in the HOMEBREW_TAP_TOKEN CI variable.
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      token: "{{ .Env.GITLAB_TOKEN }}"
       git:
-        url: "https://oauth2:{{ .Env.HOMEBREW_TAP_TOKEN }}@gitlab.com/tachyons/homebrew-duo-lsp.git"
+        url: "https://gitlab-ci-token:{{ .Env.GITLAB_TOKEN }}@gitlab.com/tachyons/duo_mini_lsp.git"
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
-    commit_msg_template: "chore: update duo-lsp formula to {{ .Tag }}"
+    commit_msg_template: "chore: update homebrew formula to {{ .Tag }}"
     directory: Formula
     homepage: "https://gitlab.com/tachyons/duo_mini_lsp"
     description: "Minimal GitLab Duo LSP server for inline code completions (LSP 3.18)"

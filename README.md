@@ -17,11 +17,12 @@ required on the machine running the server.
 ### Homebrew (macOS and Linux)
 
 ```sh
-brew tap tachyons/duo-lsp https://gitlab.com/tachyons/homebrew-duo-lsp
+brew tap tachyons/duo-lsp https://gitlab.com/tachyons/duo_mini_lsp
 brew install duo-lsp
 ```
 
-The formula is updated automatically on every release.
+The formula lives in this repo under `Formula/duo-lsp.rb` and is updated
+automatically on every release.
 
 ### Build from source
 

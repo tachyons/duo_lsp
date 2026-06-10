@@ -5,6 +5,8 @@ variables:
   CGO_ENABLED: "0"
   GOPATH: "$CI_PROJECT_DIR/.go"
   GOFLAGS: "-mod=readonly"
+  # Full clone required by GoReleaser (changelog) and semantic-release (tag history).
+  GIT_DEPTH: "0"
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -25,42 +27,51 @@ test:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/
 
-# ── Semantic tag ─────────────────────────────────────────────────────────────
-# Runs on every push to main. Analyses conventional commits since the last tag,
-# creates a new semver tag if warranted, and triggers the release job via that tag.
+# ── Semantic tag ──────────────────────────────────────────────────────────────
+# Analyses conventional commits on main and pushes a semver tag when warranted.
+# CI_JOB_TOKEN is used for both the GitLab Release API and the tag push —
+# no stored secrets required.
+#
+# One-time setup: Settings → Repository → Protected branches → main →
+# enable "Allowed to push: CI/CD job token" so the token can push tags.
 semantic-release:
   stage: tag
   image: node:20-slim
-  variables:
-    GIT_DEPTH: "0"
   before_script:
+    - apt-get update -qq && apt-get install -y -qq git
+    - git remote set-url origin
+        "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
+    - git config user.email "ci@gitlab.com"
+    - git config user.name "GitLab CI"
     - npm install --no-save
         semantic-release
-        @semantic-release/commit-analyzer
-        @semantic-release/release-notes-generator
-        @semantic-release/gitlab
+        "@semantic-release/commit-analyzer"
+        "@semantic-release/release-notes-generator"
+        "@semantic-release/gitlab"
         conventional-changelog-conventionalcommits
   script:
-    - npx semantic-release
+    - GITLAB_TOKEN="$CI_JOB_TOKEN" npx semantic-release
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
 
-# ── Release ───────────────────────────────────────────────────────────────────
-# Runs only on semver tags (v1.2.3 / v1.2.3-rc.1 etc.)
-release:
+# ── GoReleaser ────────────────────────────────────────────────────────────────
+# Builds cross-platform binaries, creates archives + checksums, publishes the
+# GitLab Release, and commits Formula/duo-lsp.rb back into this same repo.
+# All authenticated via CI_JOB_TOKEN — no stored secrets.
+#
+# Homebrew tap points at this repo:
+#   brew tap tachyons/duo-lsp https://gitlab.com/tachyons/duo_mini_lsp
+#   brew install duo-lsp
+goreleaser:
   stage: release
   image:
     name: goreleaser/goreleaser:v2
     entrypoint: [""]
   variables:
-    # GITLAB_TOKEN    – project access token with api + write_repository scope
-    #                   set in CI/CD → Variables (masked, protected)
-    # HOMEBREW_TAP_TOKEN – project/deploy token for the tap repo with
-    #                   write_repository scope; set in CI/CD → Variables
-    GIT_DEPTH: "0"   # GoReleaser needs full history for the changelog
+    GITLAB_TOKEN: "$CI_JOB_TOKEN"
   script:
     - goreleaser release --clean
   rules:
@@ -68,4 +79,4 @@ release:
   artifacts:
     paths:
       - dist/
-    expire_in: 7 days
+    expire_in: 1 day

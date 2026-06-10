@@ -27,8 +27,7 @@
       }
     }],
     ["@semantic-release/gitlab", {
-      "gitlabUrl": "https://gitlab.com",
-      "assets": []
+      "gitlabUrl": "https://gitlab.com"
     }]
   ]
 }
