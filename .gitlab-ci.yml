@@ -53,13 +53,15 @@ auto-tag:
     - git config user.name "GitLab CI"
   script:
     - |
-      # Find the most recent semver tag; default to v0.0.0 if none exists.
+      # Find the most recent semver tag; if none exists log all commits.
       LAST_TAG=$(git tag --list 'v[0-9]*' --sort=-version:refname | head -1)
-      LAST_TAG=${LAST_TAG:-v0.0.0}
-      echo "Last tag: $LAST_TAG"
+      echo "Last tag: ${LAST_TAG:-<none>}"
 
-      # Collect commit subjects since that tag.
-      COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s")
+      if [ -n "$LAST_TAG" ]; then
+        COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s")
+      else
+        COMMITS=$(git log --pretty=format:"%s")
+      fi
       echo "Commits since ${LAST_TAG}:"
       echo "$COMMITS"
 
@@ -88,8 +90,9 @@ auto-tag:
         exit 0
       fi
 
-      # Parse MAJOR.MINOR.PATCH from the last tag.
-      VERSION=${LAST_TAG#v}
+      # Parse MAJOR.MINOR.PATCH from the last tag (default 0.0.0 for arithmetic).
+      VERSION=${LAST_TAG:-v0.0.0}
+      VERSION=${VERSION#v}
       MAJOR=$(echo "$VERSION" | cut -d. -f1)
       MINOR=$(echo "$VERSION" | cut -d. -f2)
       PATCH=$(echo "$VERSION" | cut -d. -f3)
