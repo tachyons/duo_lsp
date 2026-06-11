@@ -61,7 +61,6 @@ Optional flags:
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--log-level` | `info` | `debug`, `info`, `warn`, `error` |
-| `--log-file` | *(stderr)* | Write logs to a file instead |
 
 ## Editor Integration
 
@@ -143,7 +142,7 @@ end, { desc = 'Previous inline completion' })
 
 ```lua
 vim.lsp.config['gitlab_duo_lsp'] = {
-  cmd = { 'duo-lsp', 'serve', '--log-level', 'debug', '--log-file', '/tmp/duo-lsp.log' },
+  cmd = { 'duo-lsp', 'serve', '--log-level', 'debug' },
   filetypes = { 'ruby', 'go', 'lua' },
 }
 ```

@@ -29,14 +29,14 @@ import (
 	"gitlab-lsp-client/internal/lsp"
 
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/gitlab"
 )
 
 func main() {
-	// Parse top-level flags (e.g. --log-level, --log-file) that Neovim or
+	// Parse top-level flags (e.g. --log-level) that Neovim or
 	// other editors may pass before or instead of a subcommand.
 	fs := flag.NewFlagSet("duo-lsp", flag.ContinueOnError)
 	logLevel := fs.String("log-level", "", "Log level: debug, info, warn, error")
-	logFile := fs.String("log-file", "", "Write logs to this file instead of stderr")
 	fs.Usage = printUsage
 	if err := fs.Parse(os.Args[1:]); err != nil {
 		printUsage()
@@ -48,9 +48,6 @@ func main() {
 	var extraFlags []string
 	if *logLevel != "" {
 		extraFlags = append(extraFlags, "--log-level", *logLevel)
-	}
-	if *logFile != "" {
-		extraFlags = append(extraFlags, "--log-file", *logFile)
 	}
 
 	args := fs.Args()
@@ -138,21 +135,11 @@ func runAuth(args []string) {
 func runServe(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	logLevel := fs.String("log-level", "info", "Log level: debug, info, warn, error")
-	logFile := fs.String("log-file", "", "Write logs to this file instead of stderr")
 	_ = fs.Parse(args)
 
 	// Set up structured logging to stderr (or a file) so it doesn't pollute
 	// the stdio LSP channel.
 	logWriter := os.Stderr
-	if *logFile != "" {
-		f, err := os.OpenFile(*logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "opening log file: %v\n", err)
-			os.Exit(1)
-		}
-		defer f.Close()
-		logWriter = f
-	}
 
 	var level slog.Level
 	switch *logLevel {
@@ -201,9 +188,7 @@ func runServe(args []string) {
 
 	oauthCfg := &oauth2.Config{
 		ClientID: cfg.OAuthClientID,
-		Endpoint: oauth2.Endpoint{
-			TokenURL: cfg.GitLabBaseURL + "/oauth/token",
-		},
+		Endpoint: gitlab.Endpoint,
 	}
 
 	var apiClient *api.Client

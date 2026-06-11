@@ -7,63 +7,31 @@ run:
 
 formatters:
   enable:
-    - gofmt       # standard Go formatting
-    - goimports   # import ordering + gofmt
+    - gofmt # standard Go formatting
+    - goimports # import ordering + gofmt
 
 linters:
   default: none
   enable:
     # Correctness
-    - errcheck      # unchecked errors
-    - govet         # go vet checks
-    - staticcheck   # staticcheck SA/S/ST rules
-    - ineffassign   # assignments whose value is never used
-    - unused        # unused code
+    - errcheck # unchecked errors
+    - govet # go vet checks
+    - staticcheck # staticcheck SA/S/ST rules
+    - ineffassign # assignments whose value is never used
+    - unused # unused code
 
     # Style / maintainability
-    - misspell      # common spelling mistakes in comments/strings
-    - godot         # comments should end with a period
-    - revive        # opinionated linter (replaces golint)
-    - whitespace    # leading/trailing blank lines
+    - misspell # common spelling mistakes in comments/strings
+    - godot # comments should end with a period
+    - revive # opinionated linter (replaces golint)
+    - whitespace # leading/trailing blank lines
 
     # Bugs / security
-    - bodyclose     # HTTP response body must be closed
-    - noctx         # HTTP requests should use context
-    - gosec         # security issues (G-rules)
-    - nilerr        # returning nil after checking err != nil
+    - bodyclose # HTTP response body must be closed
+    - noctx # HTTP requests should use context
+    - gosec # security issues (G-rules)
+    - nilerr # returning nil after checking err != nil
 
     # Complexity
-    - cyclop        # cyclomatic complexity
-    - funlen        # function length
-
-linters-settings:
-  cyclop:
-    max-complexity: 15
-
-  funlen:
-    lines: 80
-    statements: 50
-
-  revive:
-    rules:
-      - name: exported
-        arguments:
-          - "checkPrivateReceivers"
-          - "sayRepetitiveInsteadOfStutters"
-
-  gosec:
-    excludes:
-      - G304 # file path from variable – acceptable for config loading
-
-  godot:
-    scope: declarations
-
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
-  exclude-rules:
-    # Test files are allowed longer functions and some gosec rules.
-    - path: "_test\\.go"
-      linters:
-        - funlen
-        - gosec
+    - cyclop # cyclomatic complexity
+    - funlen # function length

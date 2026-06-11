@@ -36,7 +36,7 @@ const (
 
 // inflightReq tracks a single in-flight inlineCompletion request.
 type inflightReq struct {
-	id     interface{}
+	id     any
 	cancel context.CancelFunc
 }
 
