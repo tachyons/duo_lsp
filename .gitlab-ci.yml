@@ -1,2 +1,7 @@
+stages:
+  - format
+  - build
+  - test
+
 include:
   - component: $CI_SERVER_FQDN/components/go/full-pipeline@1.1.0
