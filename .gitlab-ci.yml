@@ -127,7 +127,7 @@ goreleaser:
     name: goreleaser/goreleaser
     entrypoint: [""]
   variables:
-    GITLAB_TOKEN: "$CI_JOB_TOKEN"
+    CI_JOB_TOKEN: "$CI_JOB_TOKEN"
   script:
     - goreleaser release --clean --skip=validate
   rules:
