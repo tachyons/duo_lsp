@@ -5,3 +5,5 @@ stages:
 
 include:
   - component: $CI_SERVER_FQDN/components/go/full-pipeline@1.1.0
+  - component: $CI_SERVER_FQDN/components/sast/sast@3.4.0 
+  - component: $CI_SERVER_FQDN/components/dependency-scanning/main@2.0.0
